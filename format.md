@@ -1,0 +1,3 @@
+Content           : {"data":{"fiftyTwoWeek":{"high":32,"low":47},"circuit":{"upper":106,"lower":42},
+                    "snapshotCapitalMarket":{"total":3232,"unchange":104,"advances":2141,"declines":
+                    987},"timestamp":"03-Feb-2026","tlMKtCap...

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSE Market Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>NSE Market Dashboard</h1>
+            <div class="timestamp" id="timestamp"></div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="market-stats-section">
+            <h2>Market Statistics</h2>
+            <div id="loading" class="loading">Loading market data...</div>
+            <div id="error" class="error"></div>
+            <div id="stats" class="stats-grid"></div>
+        </section>
+
+        <section class="indices-section">
+            <h2>All Indices</h2>
+            <div id="indices-loading" class="loading">Loading indices...</div>
+            <div id="indices-error" class="error"></div>
+            <div class="table-container">
+                <table id="indices-table">
+                    <thead>
+                        <tr>
+                            <th>Index Name</th>
+                            <th>Last Price</th>
+                            <th>Change</th>
+                            <th>% Change</th>
+                            <th>Open</th>
+                            <th>High</th>
+                            <th>Low</th>
+                        </tr>
+                    </thead>
+                    <tbody id="indices-body">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
