@@ -150,6 +150,14 @@ body {
     flex: 1;
 }
 
+.col-3 .fii-compact {
+    flex: 0.28;
+}
+
+.col-3 .quick-links {
+    flex: 0.44;
+}
+
 /* DATA SECTIONS */
 .data-section {
     background: rgba(255, 255, 255, 0.05);
@@ -318,4 +326,46 @@ td {
     .stats-grid {
         grid-template-columns: repeat(4, 1fr);
     }
+}
+
+/* QUICK LINKS */
+.quick-links h2 {
+    font-size: 0.85em;
+    margin-bottom: 5px;
+    padding-bottom: 3px;
+}
+
+.links-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3px;
+    overflow: hidden;
+}
+
+.link-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    padding: 4px 8px;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.link-card:hover {
+    background: linear-gradient(135deg, rgba(15, 76, 117, 0.3) 0%, rgba(27, 111, 168, 0.2) 100%);
+    border-color: rgba(30, 136, 168, 0.6);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.link-text {
+    font-size: 0.68em;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-align: center;
 }
