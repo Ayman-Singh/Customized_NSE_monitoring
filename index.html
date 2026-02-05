@@ -7,44 +7,110 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <h1>NSE Market Dashboard</h1>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>NSE MARKET DASHBOARD</h1>
             <div class="timestamp" id="timestamp"></div>
-        </div>
-    </header>
+        </header>
 
-    <main class="main-content">
-        <section class="market-stats-section">
-            <h2>Market Statistics</h2>
-            <div id="loading" class="loading">Loading market data...</div>
-            <div id="error" class="error"></div>
+        <!-- Market Stats Bar -->
+        <section class="stats-bar">
             <div id="stats" class="stats-grid"></div>
         </section>
 
-        <section class="indices-section">
-            <h2>All Indices</h2>
-            <div id="indices-loading" class="loading">Loading indices...</div>
-            <div id="indices-error" class="error"></div>
-            <div class="table-container">
-                <table id="indices-table">
-                    <thead>
-                        <tr>
-                            <th>Index Name</th>
-                            <th>Last Price</th>
-                            <th>Change</th>
-                            <th>% Change</th>
-                            <th>Open</th>
-                            <th>High</th>
-                            <th>Low</th>
-                        </tr>
-                    </thead>
-                    <tbody id="indices-body">
-                    </tbody>
-                </table>
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Column 1: Main Indices + Metals -->
+            <div class="column col-1">
+                <section class="data-section">
+                    <h2>Main Indices</h2>
+                    <div class="table-wrapper">
+                        <table id="main-indices-table">
+                            <thead>
+                                <tr>
+                                    <th>Index</th>
+                                    <th>Price</th>
+                                    <th>Change</th>
+                                </tr>
+                            </thead>
+                            <tbody id="main-indices-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="data-section">
+                    <h2>Commodities</h2>
+                    <div class="table-wrapper">
+                        <table id="metals-table">
+                            <thead>
+                                <tr>
+                                    <th>Metal</th>
+                                    <th>Rate</th>
+                                    <th>Change</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metals-body"></tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
-        </section>
-    </main>
+
+            <!-- Column 2: Sector Indices -->
+            <div class="column col-2">
+                <section class="data-section full-height">
+                    <h2>Sector Indices</h2>
+                    <div class="table-wrapper">
+                        <table id="indices-table">
+                            <thead>
+                                <tr>
+                                    <th>Sector</th>
+                                    <th>Price</th>
+                                    <th>Change</th>
+                                </tr>
+                            </thead>
+                            <tbody id="indices-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Column 3: FII/DII Activity -->
+            <div class="column col-3">
+                <section class="data-section">
+                    <h2>FII/DII - NSE/BSE</h2>
+                    <div class="table-wrapper">
+                        <table id="fii-dii-react-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Date</th>
+                                    <th>Net Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fii-dii-react-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="data-section">
+                    <h2>FII/DII - NSE</h2>
+                    <div class="table-wrapper">
+                        <table id="fii-dii-nse-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Date</th>
+                                    <th>Net Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fii-dii-nse-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

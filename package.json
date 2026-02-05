@@ -1,14 +1,28 @@
 {
-  "name": "nse-market-stats",
+  "name": "nse-market-dashboard",
   "version": "1.0.0",
-  "description": "NSE Market Statistics Viewer",
-  "main": "server.js",
+  "description": "Real-time NSE Market Statistics Dashboard",
+  "main": "app.js",
+  "bin": "app.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node app.js",
+    "build": "pkg . --targets node18-win-x64 --output NSE-Market-Dashboard.exe"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
+    "express": "^4.18.2",
     "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "open": "^8.4.0",
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "assets": [
+      "index.html",
+      "styles.css",
+      "script.js"
+    ],
+    "outputPath": "dist"
   }
 }

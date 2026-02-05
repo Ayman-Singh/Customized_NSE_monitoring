@@ -10,104 +10,239 @@ function updateTimestamp() {
     }
 }
 
-async function fetchMarketStats() {
-    const loadingEl = document.getElementById('loading');
-    const errorEl = document.getElementById('error');
-    const statsEl = document.getElementById('stats');
+// Track if currently fetching to prevent overlaps
+let isFetching = false;
 
+async function fetchMarketStats() {
+    const statsEl = document.getElementById('stats');
     try {
         const response = await fetch('http://localhost:3000/api/market-stats');
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
+        if (!response.ok) return;
         const data = await response.json();
         const cm = data.data?.snapshotCapitalMarket || {};
 
-        // Display the stats
-        statsEl.innerHTML = `
-            <div class="stat-card">
-                <div class="stat-label">Stock Traded</div>
-                <div class="stat-value">${cm.total || 'N/A'}</div>
-            </div>
-            <div class="stat-card advances">
-                <div class="stat-label">Advances</div>
-                <div class="stat-value">${cm.advances || 'N/A'}</div>
-            </div>
-            <div class="stat-card declines">
-                <div class="stat-label">Declines</div>
-                <div class="stat-value">${cm.declines || 'N/A'}</div>
-            </div>
-            <div class="stat-card unchanged">
-                <div class="stat-label">Unchanged</div>
-                <div class="stat-value">${cm.unchange || 'N/A'}</div>
-            </div>
-        `;
-
-        loadingEl.style.display = 'none';
-        errorEl.style.display = 'none';
-    } catch (error) {
-        loadingEl.style.display = 'none';
-        errorEl.textContent = `Error: ${error.message}. Make sure the server is running (npm start).`;
-        errorEl.style.display = 'block';
-        console.error('Error fetching market stats:', error);
-    }
+        if (!statsEl.hasChildNodes()) {
+            statsEl.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Stock Traded</div>
+                    <div class="stat-value" id="stat-total">${cm.total || 'N/A'}</div>
+                </div>
+                <div class="stat-card advances">
+                    <div class="stat-label">Advances</div>
+                    <div class="stat-value" id="stat-advances">${cm.advances || 'N/A'}</div>
+                </div>
+                <div class="stat-card declines">
+                    <div class="stat-label">Declines</div>
+                    <div class="stat-value" id="stat-declines">${cm.declines || 'N/A'}</div>
+                </div>
+                <div class="stat-card unchanged">
+                    <div class="stat-label">Unchanged</div>
+                    <div class="stat-value" id="stat-unchanged">${cm.unchange || 'N/A'}</div>
+                </div>
+            `;
+        } else {
+            const totalEl = document.getElementById('stat-total');
+            const advancesEl = document.getElementById('stat-advances');
+            const declinesEl = document.getElementById('stat-declines');
+            const unchangedEl = document.getElementById('stat-unchanged');
+            if (totalEl) totalEl.textContent = cm.total || 'N/A';
+            if (advancesEl) advancesEl.textContent = cm.advances || 'N/A';
+            if (declinesEl) declinesEl.textContent = cm.declines || 'N/A';
+            if (unchangedEl) unchangedEl.textContent = cm.unchange || 'N/A';
+        }
+    } catch (error) {}
 }
 
 async function fetchIndices() {
-    const loadingEl = document.getElementById('indices-loading');
-    const errorEl = document.getElementById('indices-error');
     const tableBody = document.getElementById('indices-body');
-
     try {
         const response = await fetch('http://localhost:3000/api/all-indices');
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
+        if (!response.ok) return;
         const data = await response.json();
-        const indices = data.data || [];
+        const allIndices = data.data || [];
+        const sectorNames = ['NIFTY AUTO', 'NIFTY FMCG', 'NIFTY IT', 'NIFTY MEDIA', 'NIFTY METAL', 'NIFTY PHARMA', 'NIFTY PSU BANK', 'NIFTY PRIVATE BANK', 'NIFTY REALTY', 'NIFTY HEALTHCARE INDEX', 'NIFTY MIDSMALL IT & TELECOM', 'NIFTY OIL & GAS', 'NIFTY CHEMICALS', 'NIFTY ENERGY', 'NIFTY INDIA DIGITAL', 'NIFTY INDIA DEFENCE', 'NIFTY CAPITAL MARKETS'];
+        const indices = allIndices.filter(index => sectorNames.includes(index.index));
 
-        // Clear existing rows
-        tableBody.innerHTML = '';
+        if (tableBody.children.length === 0) {
+            indices.forEach(index => {
+                const row = document.createElement('tr');
+                const pChange = parseFloat(index.percentChange) || 0;
+                row.innerHTML = `
+                    <td class="index-name">${index.index || 'N/A'}</td>
+                    <td class="number">${parseFloat(index.last || 0).toFixed(2)}</td>
+                    <td class="number ${pChange >= 0 ? 'positive' : 'negative'}">${pChange >= 0 ? '+' : ''}${pChange.toFixed(2)}%</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } else {
+            const rows = tableBody.querySelectorAll('tr');
+            indices.forEach((index, i) => {
+                if (rows[i]) {
+                    const pChange = parseFloat(index.percentChange) || 0;
+                    const cells = rows[i].cells;
+                    cells[1].textContent = parseFloat(index.last || 0).toFixed(2);
+                    cells[2].textContent = `${pChange >= 0 ? '+' : ''}${pChange.toFixed(2)}%`;
+                    cells[2].className = `number ${pChange >= 0 ? 'positive' : 'negative'}`;
+                }
+            });
+        }
+    } catch (error) {}
+}
 
-        // Populate table
-        indices.forEach(index => {
-            const row = document.createElement('tr');
-            const change = parseFloat(index.variation) || 0;
-            const pChange = parseFloat(index.percentChange) || 0;
-            
-            row.innerHTML = `
-                <td class="index-name">${index.indexName || index.index || 'N/A'}</td>
-                <td>${parseFloat(index.last || index.lastPrice || 0).toFixed(2)}</td>
-                <td class="${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '+' : ''}${change.toFixed(2)}</td>
-                <td class="${pChange >= 0 ? 'positive' : 'negative'}">${pChange >= 0 ? '+' : ''}${pChange.toFixed(2)}%</td>
-                <td>${parseFloat(index.open || 0).toFixed(2)}</td>
-                <td>${parseFloat(index.high || 0).toFixed(2)}</td>
-                <td>${parseFloat(index.low || 0).toFixed(2)}</td>
-            `;
-            tableBody.appendChild(row);
-        });
+async function fetchMainIndices() {
+    const tableBody = document.getElementById('main-indices-body');
+    try {
+        const response = await fetch('http://localhost:3000/api/all-indices');
+        if (!response.ok) return;
+        const data = await response.json();
+        const allIndices = data.data || [];
+        const mainIndexNames = ['NIFTY 50', 'NIFTY BANK', 'NIFTY FINANCIAL SERVICES', 'NIFTY MIDCAP 100', 'NIFTY SMLCAP 400', 'NIFTY LARGEMIDCAP 250'];
+        const indices = allIndices.filter(index => mainIndexNames.includes(index.index));
 
-        loadingEl.style.display = 'none';
-        errorEl.style.display = 'none';
-    } catch (error) {
-        loadingEl.style.display = 'none';
-        errorEl.textContent = `Error: ${error.message}. Make sure the server is running (npm start).`;
-        errorEl.style.display = 'block';
-        console.error('Error fetching indices:', error);
+        if (tableBody.children.length === 0) {
+            indices.forEach(index => {
+                const row = document.createElement('tr');
+                const pChange = parseFloat(index.percentChange) || 0;
+                row.innerHTML = `
+                    <td class="index-name">${index.index || 'N/A'}</td>
+                    <td class="number">${parseFloat(index.last || 0).toFixed(2)}</td>
+                    <td class="number ${pChange >= 0 ? 'positive' : 'negative'}">${pChange >= 0 ? '+' : ''}${pChange.toFixed(2)}%</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } else {
+            const rows = tableBody.querySelectorAll('tr');
+            indices.forEach((index, i) => {
+                if (rows[i]) {
+                    const pChange = parseFloat(index.percentChange) || 0;
+                    const cells = rows[i].cells;
+                    cells[1].textContent = parseFloat(index.last || 0).toFixed(2);
+                    cells[2].textContent = `${pChange >= 0 ? '+' : ''}${pChange.toFixed(2)}%`;
+                    cells[2].className = `number ${pChange >= 0 ? 'positive' : 'negative'}`;
+                }
+            });
+        }
+    } catch (error) {}
+}
+
+async function fetchMetals() {
+    const tableBody = document.getElementById('metals-body');
+    try {
+        const response = await fetch('http://localhost:3000/api/metals');
+        if (!response.ok) return;
+        const data = await response.json();
+        const metals = data.data || [];
+
+        if (tableBody.children.length === 0) {
+            metals.forEach(metal => {
+                const row = document.createElement('tr');
+                const change = parseFloat(metal.change) || 0;
+                row.innerHTML = `
+                    <td class="index-name">${metal.name || 'N/A'}</td>
+                    <td class="number">${parseFloat(metal.rate || 0).toFixed(2)}</td>
+                    <td class="number ${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } else {
+            const rows = tableBody.querySelectorAll('tr');
+            metals.forEach((metal, i) => {
+                if (rows[i]) {
+                    const change = parseFloat(metal.change) || 0;
+                    const cells = rows[i].cells;
+                    cells[1].textContent = parseFloat(metal.rate || 0).toFixed(2);
+                    cells[2].textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+                    cells[2].className = `number ${change >= 0 ? 'positive' : 'negative'}`;
+                }
+            });
+        }
+    } catch (error) {}
+}
+
+async function fetchFiiDiiReact() {
+    const tableBody = document.getElementById('fii-dii-react-body');
+    try {
+        const response = await fetch('http://localhost:3000/api/fii-dii-react');
+        if (!response.ok) return;
+        const data = await response.json();
+
+        if (tableBody.children.length === 0) {
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                const netValue = parseFloat(item.netValue) || 0;
+                row.innerHTML = `
+                    <td class="index-name">${item.category || 'N/A'}</td>
+                    <td class="number">${item.date || 'N/A'}</td>
+                    <td class="number ${netValue >= 0 ? 'positive' : 'negative'}">${netValue >= 0 ? '+' : ''}${netValue.toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } else {
+            const rows = tableBody.querySelectorAll('tr');
+            data.forEach((item, i) => {
+                if (rows[i]) {
+                    const netValue = parseFloat(item.netValue) || 0;
+                    const cells = rows[i].cells;
+                    cells[1].textContent = item.date || 'N/A';
+                    cells[2].textContent = `${netValue >= 0 ? '+' : ''}${netValue.toFixed(2)}`;
+                    cells[2].className = `number ${netValue >= 0 ? 'positive' : 'negative'}`;
+                }
+            });
+        }
+    } catch (error) {}
+}
+
+async function fetchFiiDiiNse() {
+    const tableBody = document.getElementById('fii-dii-nse-body');
+    try {
+        const response = await fetch('http://localhost:3000/api/fii-dii-nse');
+        if (!response.ok) return;
+        const data = await response.json();
+
+        if (tableBody.children.length === 0) {
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                const netValue = parseFloat(item.netValue) || 0;
+                row.innerHTML = `
+                    <td class="index-name">${item.category || 'N/A'}</td>
+                    <td class="number">${item.date || 'N/A'}</td>
+                    <td class="number ${netValue >= 0 ? 'positive' : 'negative'}">${netValue >= 0 ? '+' : ''}${netValue.toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } else {
+            const rows = tableBody.querySelectorAll('tr');
+            data.forEach((item, i) => {
+                if (rows[i]) {
+                    const netValue = parseFloat(item.netValue) || 0;
+                    const cells = rows[i].cells;
+                    cells[1].textContent = item.date || 'N/A';
+                    cells[2].textContent = `${netValue >= 0 ? '+' : ''}${netValue.toFixed(2)}`;
+                    cells[2].className = `number ${netValue >= 0 ? 'positive' : 'negative'}`;
+                }
+            });
+        }
+    } catch (error) {}
+}
+
+async function updateAllData() {
+    if (isFetching) return;
+    isFetching = true;
+    try {
+        await Promise.allSettled([
+            fetchMarketStats(),
+            fetchMainIndices(),
+            fetchIndices(),
+            fetchMetals(),
+            fetchFiiDiiReact(),
+            fetchFiiDiiNse()
+        ]);
+    } finally {
+        isFetching = false;
     }
 }
 
-// Fetch data when page loads and then every 100ms
 updateTimestamp();
 setInterval(updateTimestamp, 1000);
-
-fetchMarketStats();
-fetchIndices();
-
-setInterval(fetchMarketStats, 100);
-setInterval(fetchIndices, 100);
-
+updateAllData();
+setInterval(updateAllData, 100);
