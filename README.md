@@ -19,8 +19,11 @@ This dashboard is not intended as a comprehensive market tracking tool for all a
 - **Real-time Market Statistics** - Live display of stocks traded, advances, declines, and unchanged stocks
 - **Main Indices Tracking** - NIFTY 50, NIFTY BANK, Financial Services, MidCap, SmallCap, and LargeMidCap
 - **Sector Indices** - 17 sector indices including Auto, FMCG, IT, Media, Metal, Pharma, Banking, Realty, Healthcare, Oil & Gas, Chemicals, Energy, Digital, Defence, and Capital Markets
-- **Commodities Prices** - Live tracking of Gold, Silver, and Copper prices
-- **FII/DII Activity** - Foreign and Domestic Institutional Investor trading data from both NSE/BSE and React India
+- **Indian Commodities** - Live tracking of Gold, Silver, and Copper prices from MCX (MoneyControl)
+- **International Commodities** - Gold, Silver, Copper, and Aluminium prices from Trading Economics
+- **FII/DII Activity** - Foreign and Domestic Institutional Investor trading data from both NSE/BSE and NSE
+- **Company News Search** - Search bar to quickly look up recent news for any company via Google
+- **Quick Links** - One-click access to Top Gainers/Losers, Volume Spurts, Earnings, Screener, Charts, and more
 - **Lightning Fast Updates** - Automatic data refresh every 100ms (0.1 seconds)
 - **Modern UI/UX** - Dark gradient theme with glass-morphism effects and smooth transitions
 - **Single Page Design** - All information visible at once with no scrolling required
@@ -91,15 +94,16 @@ The server provides the following proxy endpoints:
 
 - `GET /api/market-stats` - Market statistics (stocks traded, advances, declines, unchanged)
 - `GET /api/all-indices` - All NSE indices data (main + sector indices)
-- `GET /api/metals` - Commodities data (Gold, Silver, Copper)
-- `GET /api/fii-dii-react` - FII/DII trading data from React India
-- `GET /api/fii-dii-nse` - FII/DII trading data from NSE
+- `GET /api/metals` - Indian commodities data from MCX (Gold, Silver, Copper)
+- `GET /api/intl-metals` - International commodities from Trading Economics (Gold, Silver, Copper, Aluminium)
+- `GET /api/fii-dii-react` - FII/DII trading data (NSE/BSE)
+- `GET /api/fii-dii-nse` - FII/DII trading data (NSE)
 
 ## Technical Details
 
 - **Frontend**: HTML5, CSS3 Grid/Flexbox, Vanilla JavaScript
 - **Backend**: Node.js, Express 4.18.2
-- **Data Sources**: NSE India API, MoneyControl Commodities API
+- **Data Sources**: NSE India API, MoneyControl Commodities API, Trading Economics (international commodities)
 - **Update Frequency**: 100ms (10 updates per second)
 - **Packaging**: pkg 5.8.1 for standalone executable
 - **Auto-Launch**: open 8.4.0 for automatic browser opening
@@ -125,4 +129,4 @@ The server provides the following proxy endpoints:
 
 ## License
 
-This project is for educational and personal use only. Market data is provided by NSE India and MoneyControl.
+This project is for educational and personal use only. Market data is provided by NSE India, MoneyControl, and Trading Economics.

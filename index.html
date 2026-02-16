@@ -8,15 +8,17 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Header -->
-        <header class="header">
-            <h1>NSE MARKET DASHBOARD</h1>
-            <div class="timestamp" id="timestamp"></div>
-        </header>
-
-        <!-- Market Stats Bar -->
+        <!-- Market Stats Bar with Header and Search -->
         <section class="stats-bar">
+            <div class="header-info">
+                <h1>NSE MARKET DASHBOARD</h1>
+                <div class="timestamp" id="timestamp"></div>
+            </div>
             <div id="stats" class="stats-grid"></div>
+            <div class="search-container">
+                <input type="text" id="company-search" placeholder="Enter company name..." class="search-input">
+                <button id="search-btn" class="search-btn">Search News</button>
+            </div>
         </section>
 
         <!-- Main Content Grid -->
@@ -39,8 +41,8 @@
                     </div>
                 </section>
 
-                <section class="data-section">
-                    <h2>Commodities</h2>
+                <section class="data-section commodities-section">
+                    <h2>Commodities - Indian Market</h2>
                     <div class="table-wrapper">
                         <table id="metals-table">
                             <thead>
@@ -51,6 +53,22 @@
                                 </tr>
                             </thead>
                             <tbody id="metals-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="data-section commodities-section">
+                    <h2>Commodities - International Market</h2>
+                    <div class="table-wrapper">
+                        <table id="intl-metals-table">
+                            <thead>
+                                <tr>
+                                    <th>Metal</th>
+                                    <th>Rate (USD)</th>
+                                    <th>Change</th>
+                                </tr>
+                            </thead>
+                            <tbody id="intl-metals-body"></tbody>
                         </table>
                     </div>
                 </section>
@@ -75,7 +93,7 @@
                 </section>
             </div>
 
-            <!-- Column 3: FII/DII Activity + Quick Links -->
+            <!-- Column 3: FII/DII Activity + Volume Gainers -->
             <div class="column col-3">
                 <section class="data-section fii-compact">
                     <h2>FII/DII - NSE/BSE</h2>
@@ -105,6 +123,23 @@
                                 </tr>
                             </thead>
                             <tbody id="fii-dii-nse-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="data-section volume-gainers-section">
+                    <h2>Top Volume Gainers</h2>
+                    <div class="table-wrapper">
+                        <table id="volume-gainers-table">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Price</th>
+                                    <th>% Chg</th>
+                                    <th>Vol Inc %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="volume-gainers-body"></tbody>
                         </table>
                     </div>
                 </section>

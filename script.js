@@ -159,6 +159,40 @@ async function fetchMetals() {
     } catch (error) {}
 }
 
+async function fetchIntlMetals() {
+    const tableBody = document.getElementById('intl-metals-body');
+    try {
+        const response = await fetch('http://localhost:3000/api/intl-metals');
+        if (!response.ok) return;
+        const data = await response.json();
+        const metals = data.data || [];
+
+        if (tableBody.children.length === 0) {
+            metals.forEach(metal => {
+                const row = document.createElement('tr');
+                const change = parseFloat(metal.change) || 0;
+                row.innerHTML = `
+                    <td class="index-name">${metal.name || 'N/A'}</td>
+                    <td class="number">${parseFloat(metal.rate || 0).toFixed(2)}</td>
+                    <td class="number ${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } else {
+            const rows = tableBody.querySelectorAll('tr');
+            metals.forEach((metal, i) => {
+                if (rows[i]) {
+                    const change = parseFloat(metal.change) || 0;
+                    const cells = rows[i].cells;
+                    cells[1].textContent = parseFloat(metal.rate || 0).toFixed(2);
+                    cells[2].textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+                    cells[2].className = `number ${change >= 0 ? 'positive' : 'negative'}`;
+                }
+            });
+        }
+    } catch (error) {}
+}
+
 async function fetchFiiDiiReact() {
     const tableBody = document.getElementById('fii-dii-react-body');
     try {
@@ -225,6 +259,44 @@ async function fetchFiiDiiNse() {
     } catch (error) {}
 }
 
+async function fetchVolumeGainers() {
+    const tableBody = document.getElementById('volume-gainers-body');
+    try {
+        const response = await fetch('http://localhost:3000/api/volume-gainers');
+        if (!response.ok) return;
+        const data = await response.json();
+        const stocks = data.data || [];
+
+        if (tableBody.children.length === 0) {
+            stocks.forEach(stock => {
+                const row = document.createElement('tr');
+                const pChange = parseFloat(stock.pChange) || 0;
+                const percentageIncrease = parseFloat(stock.percentageIncrease) || 0;
+                row.innerHTML = `
+                    <td class="index-name">${stock.symbol || 'N/A'}</td>
+                    <td class="number">${parseFloat(stock.ltp || 0).toFixed(2)}</td>
+                    <td class="number positive">+${pChange.toFixed(2)}%</td>
+                    <td class="number positive">+${percentageIncrease.toFixed(1)}%</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } else {
+            const rows = tableBody.querySelectorAll('tr');
+            stocks.forEach((stock, i) => {
+                if (rows[i]) {
+                    const pChange = parseFloat(stock.pChange) || 0;
+                    const percentageIncrease = parseFloat(stock.percentageIncrease) || 0;
+                    const cells = rows[i].cells;
+                    cells[0].textContent = stock.symbol || 'N/A';
+                    cells[1].textContent = parseFloat(stock.ltp || 0).toFixed(2);
+                    cells[2].textContent = `+${pChange.toFixed(2)}%`;
+                    cells[3].textContent = `+${percentageIncrease.toFixed(1)}%`;
+                }
+            });
+        }
+    } catch (error) {}
+}
+
 async function updateAllData() {
     if (isFetching) return;
     isFetching = true;
@@ -234,8 +306,10 @@ async function updateAllData() {
             fetchMainIndices(),
             fetchIndices(),
             fetchMetals(),
+            fetchIntlMetals(),
             fetchFiiDiiReact(),
-            fetchFiiDiiNse()
+            fetchFiiDiiNse(),
+            fetchVolumeGainers()
         ]);
     } finally {
         isFetching = false;
@@ -245,4 +319,24 @@ async function updateAllData() {
 updateTimestamp();
 setInterval(updateTimestamp, 1000);
 updateAllData();
-setInterval(updateAllData, 100);
+setInterval(updateAllData, 1000);
+
+// Company news search
+const searchInput = document.getElementById('company-search');
+const searchBtn = document.getElementById('search-btn');
+
+function searchCompanyNews() {
+    const companyName = searchInput.value.trim();
+    if (companyName) {
+        const searchQuery = encodeURIComponent(`recent news ${companyName}`);
+        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+        searchInput.value = '';
+    }
+}
+
+searchBtn.addEventListener('click', searchCompanyNews);
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        searchCompanyNews();
+    }
+});
