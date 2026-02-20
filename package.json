@@ -6,7 +6,7 @@
   "bin": "app.js",
   "scripts": {
     "start": "node app.js",
-    "build": "pkg . --targets node18-win-x64 --output NSE-Market-Dashboard.exe"
+    "build": "pkg . --targets node18-win-x64 --output NSE.exe"
   },
   "dependencies": {
     "cors": "^2.8.5",

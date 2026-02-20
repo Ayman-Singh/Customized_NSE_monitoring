@@ -49,7 +49,7 @@ app.get('/api/metals', async (req, res) => {
         const response = await fetch('https://priceapi.moneycontrol.com/technicalCompanyData/commodity/getMajorCommodities?tabName=MCX&deviceType=W');
         const data = await response.json();
         
-        const targetMetals = ['GOLD', 'SILVER', 'COPPER'];
+        const targetMetals = ['GOLD', 'SILVER', 'COPPER', 'ALUMINIUM', 'ALUMINUM'];
         const metals = (data.data?.list || [])
             .filter(item => targetMetals.some(metal => item.symbol?.toUpperCase().includes(metal)))
             .map(item => ({
@@ -201,11 +201,29 @@ app.get('/api/volume-gainers', async (req, res) => {
                 };
             })
             .sort((a, b) => b.percentageIncrease - a.percentageIncrease)
-            .slice(0, 5);
+            .slice(0, 10);
         
         res.json({ data: filtered });
     } catch (error) {
         console.error('Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/52-week-high', async (req, res) => {
+    try {
+        const response = await fetch('https://www.nseindia.com/api/live-analysis-52Week?index=high&isTop=true', {
+            headers: {
+                'User-Agent': 'Mozilla/5.0',
+                'Accept': 'application/json',
+                'Referer': 'https://www.nseindia.com/market-data/live-market-indices'
+            }
+        });
+        const data = await response.json();
+        const stocks = (data.dataLtpGreater20 || data.data || []).slice(0, 8);
+        res.json({ data: stocks });
+    } catch (error) {
+        console.error('Error fetching 52 week high:', error);
         res.status(500).json({ error: error.message });
     }
 });

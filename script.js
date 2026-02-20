@@ -1,315 +1,288 @@
-// Update timestamp
+// ─── Timestamp ───
 function updateTimestamp() {
     const now = new Date();
-    const timestampEl = document.getElementById('timestamp');
-    if (timestampEl) {
-        timestampEl.textContent = now.toLocaleString('en-IN', {
-            dateStyle: 'medium',
-            timeStyle: 'medium'
-        });
+    const el = document.getElementById('timestamp');
+    if (el) {
+        el.textContent = now.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'medium' });
     }
 }
 
-// Track if currently fetching to prevent overlaps
 let isFetching = false;
 
+// ─── Market Stats (top bar) ───
 async function fetchMarketStats() {
-    const statsEl = document.getElementById('stats');
     try {
         const response = await fetch('http://localhost:3000/api/market-stats');
         if (!response.ok) return;
         const data = await response.json();
         const cm = data.data?.snapshotCapitalMarket || {};
 
-        if (!statsEl.hasChildNodes()) {
-            statsEl.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">Stock Traded</div>
-                    <div class="stat-value" id="stat-total">${cm.total || 'N/A'}</div>
-                </div>
-                <div class="stat-card advances">
-                    <div class="stat-label">Advances</div>
-                    <div class="stat-value" id="stat-advances">${cm.advances || 'N/A'}</div>
-                </div>
-                <div class="stat-card declines">
-                    <div class="stat-label">Declines</div>
-                    <div class="stat-value" id="stat-declines">${cm.declines || 'N/A'}</div>
-                </div>
-                <div class="stat-card unchanged">
-                    <div class="stat-label">Unchanged</div>
-                    <div class="stat-value" id="stat-unchanged">${cm.unchange || 'N/A'}</div>
-                </div>
-            `;
-        } else {
-            const totalEl = document.getElementById('stat-total');
-            const advancesEl = document.getElementById('stat-advances');
-            const declinesEl = document.getElementById('stat-declines');
-            const unchangedEl = document.getElementById('stat-unchanged');
-            if (totalEl) totalEl.textContent = cm.total || 'N/A';
-            if (advancesEl) advancesEl.textContent = cm.advances || 'N/A';
-            if (declinesEl) declinesEl.textContent = cm.declines || 'N/A';
-            if (unchangedEl) unchangedEl.textContent = cm.unchange || 'N/A';
-        }
-    } catch (error) {}
+        document.getElementById('stat-total').textContent = cm.total || '-';
+        document.getElementById('stat-advances').textContent = cm.advances || '-';
+        document.getElementById('stat-declines').textContent = cm.declines || '-';
+        document.getElementById('stat-unchanged').textContent = cm.unchange || '-';
+
+        // PROPEN - use fiftyTwoWeek high/low counts
+        const fw = data.data?.fiftyTwoWeek || {};
+        document.getElementById('stat-propen-adv').textContent = fw.high || '-';
+        document.getElementById('stat-propen-dec').textContent = fw.low || '-';
+    } catch (e) {}
 }
 
-async function fetchIndices() {
-    const tableBody = document.getElementById('indices-body');
+// ─── Main Indices (Column 1 top) ───
+const mainIndexNames = [
+    'NIFTY 50', 'NIFTY BANK', 'NIFTY FINANCIAL SERVICES',
+    'NIFTY LARGEMIDCAP 250', 'NIFTY MIDCAP 150', 'NIFTY MIDCAP SELECT',
+    'NIFTY MIDSMALLCAP 400', 'NIFTY SMALLCAP 250', 'NIFTY MICROCAP 250'
+];
+
+// ─── Sector Indices (Column 1 bottom) ───
+const sectorNames = [
+    'NIFTY AUTO', 'NIFTY FINANCIAL SERVICES 25/50', 'NIFTY FMCG',
+    'NIFTY IT', 'NIFTY MEDIA', 'NIFTY METAL', 'NIFTY PHARMA',
+    'NIFTY PSU BANK', 'NIFTY PRIVATE BANK', 'NIFTY REALTY',
+    'NIFTY HEALTHCARE INDEX', 'NIFTY CONSUMER DURABLES',
+    'NIFTY OIL & GAS', 'NIFTY MIDSMALL HEALTHCARE',
+    'NIFTY FINANCIAL SERVICES EX-BANK', 'NIFTY MIDSMALL FINANCIAL SERVICES',
+    'NIFTY MIDSMALL IT & TELECOM', 'NIFTY CHEMICALS'
+];
+
+// ─── Thematic Indices (Column 2 top) ───
+const thematicNames = [
+    'NIFTY CAPITAL MARKETS', 'NIFTY COMMODITIES', 'NIFTY CORE HOUSING',
+    'NIFTY CPSE', 'NIFTY ENERGY', 'NIFTY EV & NEW AGE AUTOMOTIVE',
+    'NIFTY HOUSING', 'NIFTY INDIA CONSUMPTION',
+    'NIFTY INDIA DEFENCE', 'NIFTY INDIA DIGITAL',
+    'NIFTY INDIA MANUFACTURING', 'NIFTY INDIA NEW AGE CONSUMPTION',
+    'NIFTY INDIA TOURISM', 'NIFTY INFRASTRUCTURE',
+    'NIFTY MNC', 'NIFTY MOBILITY', 'NIFTY PSE',
+    'NIFTY SERVICES SECTOR'
+];
+
+function renderRows(tbody, items, getRow) {
+    if (tbody.children.length === 0) {
+        items.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = getRow(item);
+            tbody.appendChild(row);
+        });
+    } else {
+        const rows = tbody.querySelectorAll('tr');
+        items.forEach((item, i) => {
+            if (rows[i]) {
+                rows[i].innerHTML = getRow(item);
+            }
+        });
+    }
+}
+
+function indexRow(item) {
+    const pChange = parseFloat(item.percentChange) || 0;
+    const cls = pChange >= 0 ? 'positive' : 'negative';
+    const sign = pChange >= 0 ? '+' : '';
+    return `
+        <td class="index-name">${item.index || 'N/A'}</td>
+        <td>${parseFloat(item.last || 0).toFixed(2)}</td>
+        <td class="${cls}">${sign}${pChange.toFixed(2)}%</td>
+    `;
+}
+
+async function fetchAllIndices() {
     try {
         const response = await fetch('http://localhost:3000/api/all-indices');
         if (!response.ok) return;
         const data = await response.json();
-        const allIndices = data.data || [];
-        const sectorNames = ['NIFTY AUTO', 'NIFTY FMCG', 'NIFTY IT', 'NIFTY MEDIA', 'NIFTY METAL', 'NIFTY PHARMA', 'NIFTY PSU BANK', 'NIFTY PRIVATE BANK', 'NIFTY REALTY', 'NIFTY HEALTHCARE INDEX', 'NIFTY MIDSMALL IT & TELECOM', 'NIFTY OIL & GAS', 'NIFTY CHEMICALS', 'NIFTY ENERGY', 'NIFTY INDIA DIGITAL', 'NIFTY INDIA DEFENCE', 'NIFTY CAPITAL MARKETS'];
-        const indices = allIndices.filter(index => sectorNames.includes(index.index));
+        const all = data.data || [];
 
-        if (tableBody.children.length === 0) {
-            indices.forEach(index => {
-                const row = document.createElement('tr');
-                const pChange = parseFloat(index.percentChange) || 0;
-                row.innerHTML = `
-                    <td class="index-name">${index.index || 'N/A'}</td>
-                    <td class="number">${parseFloat(index.last || 0).toFixed(2)}</td>
-                    <td class="number ${pChange >= 0 ? 'positive' : 'negative'}">${pChange >= 0 ? '+' : ''}${pChange.toFixed(2)}%</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        } else {
-            const rows = tableBody.querySelectorAll('tr');
-            indices.forEach((index, i) => {
-                if (rows[i]) {
-                    const pChange = parseFloat(index.percentChange) || 0;
-                    const cells = rows[i].cells;
-                    cells[1].textContent = parseFloat(index.last || 0).toFixed(2);
-                    cells[2].textContent = `${pChange >= 0 ? '+' : ''}${pChange.toFixed(2)}%`;
-                    cells[2].className = `number ${pChange >= 0 ? 'positive' : 'negative'}`;
-                }
-            });
-        }
-    } catch (error) {}
+        // Main indices
+        const mainIndices = mainIndexNames.map(n => all.find(i => i.index === n)).filter(Boolean);
+        renderRows(document.getElementById('main-indices-body'), mainIndices, indexRow);
+
+        // Sector indices
+        const sectorIndices = sectorNames.map(n => all.find(i => i.index === n)).filter(Boolean);
+        renderRows(document.getElementById('sector-body'), sectorIndices, indexRow);
+
+        // Thematic indices
+        const thematicIndices = thematicNames.map(n => all.find(i => i.index === n)).filter(Boolean);
+        renderRows(document.getElementById('thematic-body'), thematicIndices, indexRow);
+    } catch (e) {}
 }
 
-async function fetchMainIndices() {
-    const tableBody = document.getElementById('main-indices-body');
-    try {
-        const response = await fetch('http://localhost:3000/api/all-indices');
-        if (!response.ok) return;
-        const data = await response.json();
-        const allIndices = data.data || [];
-        const mainIndexNames = ['NIFTY 50', 'NIFTY BANK', 'NIFTY FINANCIAL SERVICES', 'NIFTY MIDCAP 100', 'NIFTY SMLCAP 400', 'NIFTY LARGEMIDCAP 250'];
-        const indices = allIndices.filter(index => mainIndexNames.includes(index.index));
-
-        if (tableBody.children.length === 0) {
-            indices.forEach(index => {
-                const row = document.createElement('tr');
-                const pChange = parseFloat(index.percentChange) || 0;
-                row.innerHTML = `
-                    <td class="index-name">${index.index || 'N/A'}</td>
-                    <td class="number">${parseFloat(index.last || 0).toFixed(2)}</td>
-                    <td class="number ${pChange >= 0 ? 'positive' : 'negative'}">${pChange >= 0 ? '+' : ''}${pChange.toFixed(2)}%</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        } else {
-            const rows = tableBody.querySelectorAll('tr');
-            indices.forEach((index, i) => {
-                if (rows[i]) {
-                    const pChange = parseFloat(index.percentChange) || 0;
-                    const cells = rows[i].cells;
-                    cells[1].textContent = parseFloat(index.last || 0).toFixed(2);
-                    cells[2].textContent = `${pChange >= 0 ? '+' : ''}${pChange.toFixed(2)}%`;
-                    cells[2].className = `number ${pChange >= 0 ? 'positive' : 'negative'}`;
-                }
-            });
-        }
-    } catch (error) {}
-}
-
-async function fetchMetals() {
-    const tableBody = document.getElementById('metals-body');
-    try {
-        const response = await fetch('http://localhost:3000/api/metals');
-        if (!response.ok) return;
-        const data = await response.json();
-        const metals = data.data || [];
-
-        if (tableBody.children.length === 0) {
-            metals.forEach(metal => {
-                const row = document.createElement('tr');
-                const change = parseFloat(metal.change) || 0;
-                row.innerHTML = `
-                    <td class="index-name">${metal.name || 'N/A'}</td>
-                    <td class="number">${parseFloat(metal.rate || 0).toFixed(2)}</td>
-                    <td class="number ${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        } else {
-            const rows = tableBody.querySelectorAll('tr');
-            metals.forEach((metal, i) => {
-                if (rows[i]) {
-                    const change = parseFloat(metal.change) || 0;
-                    const cells = rows[i].cells;
-                    cells[1].textContent = parseFloat(metal.rate || 0).toFixed(2);
-                    cells[2].textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-                    cells[2].className = `number ${change >= 0 ? 'positive' : 'negative'}`;
-                }
-            });
-        }
-    } catch (error) {}
-}
-
+// ─── International Metals ───
 async function fetchIntlMetals() {
-    const tableBody = document.getElementById('intl-metals-body');
     try {
         const response = await fetch('http://localhost:3000/api/intl-metals');
         if (!response.ok) return;
         const data = await response.json();
         const metals = data.data || [];
 
-        if (tableBody.children.length === 0) {
-            metals.forEach(metal => {
-                const row = document.createElement('tr');
-                const change = parseFloat(metal.change) || 0;
-                row.innerHTML = `
-                    <td class="index-name">${metal.name || 'N/A'}</td>
-                    <td class="number">${parseFloat(metal.rate || 0).toFixed(2)}</td>
-                    <td class="number ${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        } else {
-            const rows = tableBody.querySelectorAll('tr');
-            metals.forEach((metal, i) => {
-                if (rows[i]) {
-                    const change = parseFloat(metal.change) || 0;
-                    const cells = rows[i].cells;
-                    cells[1].textContent = parseFloat(metal.rate || 0).toFixed(2);
-                    cells[2].textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-                    cells[2].className = `number ${change >= 0 ? 'positive' : 'negative'}`;
-                }
-            });
-        }
-    } catch (error) {}
+        renderRows(document.getElementById('intl-metals-body'), metals, (m) => {
+            const change = parseFloat(m.change) || 0;
+            const cls = change >= 0 ? 'positive' : 'negative';
+            const sign = change >= 0 ? '+' : '';
+            return `
+                <td class="index-name">${m.name}</td>
+                <td>${parseFloat(m.rate || 0).toFixed(2)}</td>
+                <td class="${cls}">${sign}${change.toFixed(2)}%</td>
+            `;
+        });
+    } catch (e) {}
 }
 
-async function fetchFiiDiiReact() {
-    const tableBody = document.getElementById('fii-dii-react-body');
+// ─── Indian Metals ───
+async function fetchIndianMetals() {
+    try {
+        const response = await fetch('http://localhost:3000/api/metals');
+        if (!response.ok) return;
+        const data = await response.json();
+        const metals = data.data || [];
+
+        renderRows(document.getElementById('indian-metals-body'), metals, (m) => {
+            const change = parseFloat(m.change) || 0;
+            const cls = change >= 0 ? 'positive' : 'negative';
+            const sign = change >= 0 ? '+' : '';
+            return `
+                <td class="index-name">${m.name}</td>
+                <td>${parseFloat(m.rate || 0).toFixed(2)}</td>
+                <td class="${cls}">${sign}${change.toFixed(2)}%</td>
+            `;
+        });
+    } catch (e) {}
+}
+
+// ─── FII/DII BSE (React) ───
+async function fetchFiiDiiBse() {
     try {
         const response = await fetch('http://localhost:3000/api/fii-dii-react');
         if (!response.ok) return;
         const data = await response.json();
 
-        if (tableBody.children.length === 0) {
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                const netValue = parseFloat(item.netValue) || 0;
-                row.innerHTML = `
-                    <td class="index-name">${item.category || 'N/A'}</td>
-                    <td class="number">${item.date || 'N/A'}</td>
-                    <td class="number ${netValue >= 0 ? 'positive' : 'negative'}">${netValue >= 0 ? '+' : ''}${netValue.toFixed(2)}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        } else {
-            const rows = tableBody.querySelectorAll('tr');
-            data.forEach((item, i) => {
-                if (rows[i]) {
-                    const netValue = parseFloat(item.netValue) || 0;
-                    const cells = rows[i].cells;
-                    cells[1].textContent = item.date || 'N/A';
-                    cells[2].textContent = `${netValue >= 0 ? '+' : ''}${netValue.toFixed(2)}`;
-                    cells[2].className = `number ${netValue >= 0 ? 'positive' : 'negative'}`;
-                }
-            });
-        }
-    } catch (error) {}
+        renderRows(document.getElementById('fii-dii-bse-body'), data, (item) => {
+            const nv = parseFloat(item.netValue) || 0;
+            const cls = nv >= 0 ? 'positive' : 'negative';
+            const sign = nv >= 0 ? '+' : '';
+            return `
+                <td class="index-name">${item.category || 'N/A'}</td>
+                <td>${item.date || 'N/A'}</td>
+                <td class="${cls}">${sign}${nv.toFixed(2)}</td>
+            `;
+        });
+    } catch (e) {}
 }
 
+// ─── FII/DII NSE ───
 async function fetchFiiDiiNse() {
-    const tableBody = document.getElementById('fii-dii-nse-body');
     try {
         const response = await fetch('http://localhost:3000/api/fii-dii-nse');
         if (!response.ok) return;
         const data = await response.json();
 
-        if (tableBody.children.length === 0) {
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                const netValue = parseFloat(item.netValue) || 0;
-                row.innerHTML = `
-                    <td class="index-name">${item.category || 'N/A'}</td>
-                    <td class="number">${item.date || 'N/A'}</td>
-                    <td class="number ${netValue >= 0 ? 'positive' : 'negative'}">${netValue >= 0 ? '+' : ''}${netValue.toFixed(2)}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        } else {
-            const rows = tableBody.querySelectorAll('tr');
-            data.forEach((item, i) => {
-                if (rows[i]) {
-                    const netValue = parseFloat(item.netValue) || 0;
-                    const cells = rows[i].cells;
-                    cells[1].textContent = item.date || 'N/A';
-                    cells[2].textContent = `${netValue >= 0 ? '+' : ''}${netValue.toFixed(2)}`;
-                    cells[2].className = `number ${netValue >= 0 ? 'positive' : 'negative'}`;
-                }
-            });
-        }
-    } catch (error) {}
+        renderRows(document.getElementById('fii-dii-nse-body'), data, (item) => {
+            const nv = parseFloat(item.netValue) || 0;
+            const cls = nv >= 0 ? 'positive' : 'negative';
+            const sign = nv >= 0 ? '+' : '';
+            return `
+                <td class="index-name">${item.category || 'N/A'}</td>
+                <td>${item.date || 'N/A'}</td>
+                <td class="${cls}">${sign}${nv.toFixed(2)}</td>
+            `;
+        });
+    } catch (e) {}
 }
 
+// ─── Volume Gainers ───
 async function fetchVolumeGainers() {
-    const tableBody = document.getElementById('volume-gainers-body');
     try {
         const response = await fetch('http://localhost:3000/api/volume-gainers');
         if (!response.ok) return;
         const data = await response.json();
         const stocks = data.data || [];
 
-        if (tableBody.children.length === 0) {
-            stocks.forEach(stock => {
-                const row = document.createElement('tr');
-                const pChange = parseFloat(stock.pChange) || 0;
-                const percentageIncrease = parseFloat(stock.percentageIncrease) || 0;
-                row.innerHTML = `
-                    <td class="index-name">${stock.symbol || 'N/A'}</td>
-                    <td class="number">${parseFloat(stock.ltp || 0).toFixed(2)}</td>
-                    <td class="number positive">+${pChange.toFixed(2)}%</td>
-                    <td class="number positive">+${percentageIncrease.toFixed(1)}%</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        } else {
-            const rows = tableBody.querySelectorAll('tr');
-            stocks.forEach((stock, i) => {
-                if (rows[i]) {
-                    const pChange = parseFloat(stock.pChange) || 0;
-                    const percentageIncrease = parseFloat(stock.percentageIncrease) || 0;
-                    const cells = rows[i].cells;
-                    cells[0].textContent = stock.symbol || 'N/A';
-                    cells[1].textContent = parseFloat(stock.ltp || 0).toFixed(2);
-                    cells[2].textContent = `+${pChange.toFixed(2)}%`;
-                    cells[3].textContent = `+${percentageIncrease.toFixed(1)}%`;
-                }
-            });
-        }
-    } catch (error) {}
+        renderRows(document.getElementById('volume-gainers-body'), stocks, (stock, i) => {
+            const pChange = parseFloat(stock.pChange) || 0;
+            const volPct = parseFloat(stock.percentageIncrease) || 0;
+            return `
+                <td class="index-name">${stock.symbol || 'N/A'}</td>
+                <td class="positive">+${pChange.toFixed(2)}%</td>
+                <td class="positive">+${volPct.toFixed(1)}%</td>
+            `;
+        });
+    } catch (e) {}
 }
 
+// ─── 52 Week High ───
+async function fetch52WeekHigh() {
+    try {
+        const response = await fetch('http://localhost:3000/api/52-week-high');
+        if (!response.ok) return;
+        const data = await response.json();
+        const stocks = data.data || [];
+
+        renderRows(document.getElementById('week52-body'), stocks, (stock, i) => {
+            return `
+                <td class="index-name">${stock.symbol || 'N/A'}</td>
+                <td></td>
+                <td class="rank-num">${i + 1}</td>
+            `;
+        });
+    } catch (e) {}
+}
+
+// Extend renderRows to pass index
+const _origRenderRows = renderRows;
+function renderRowsIdx(tbody, items, getRow) {
+    if (tbody.children.length === 0) {
+        items.forEach((item, i) => {
+            const row = document.createElement('tr');
+            row.innerHTML = getRow(item, i);
+            tbody.appendChild(row);
+        });
+    } else {
+        const rows = tbody.querySelectorAll('tr');
+        items.forEach((item, i) => {
+            if (rows[i]) {
+                rows[i].innerHTML = getRow(item, i);
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = getRow(item, i);
+                tbody.appendChild(row);
+            }
+        });
+    }
+}
+
+// Override for 52 week and volume gainers to use index-aware render
+async function fetch52WeekHighFull() {
+    try {
+        const response = await fetch('http://localhost:3000/api/52-week-high');
+        if (!response.ok) return;
+        const data = await response.json();
+        const stocks = data.data || [];
+
+        renderRowsIdx(document.getElementById('week52-body'), stocks, (stock, i) => {
+            return `
+                <td class="index-name">${stock.symbol || 'N/A'}</td>
+                <td></td>
+                <td class="rank-num">${i + 1}</td>
+            `;
+        });
+    } catch (e) {}
+}
+
+// ─── Main update loop ───
 async function updateAllData() {
     if (isFetching) return;
     isFetching = true;
     try {
         await Promise.allSettled([
             fetchMarketStats(),
-            fetchMainIndices(),
-            fetchIndices(),
-            fetchMetals(),
+            fetchAllIndices(),
             fetchIntlMetals(),
-            fetchFiiDiiReact(),
+            fetchIndianMetals(),
+            fetchFiiDiiBse(),
             fetchFiiDiiNse(),
-            fetchVolumeGainers()
+            fetchVolumeGainers(),
+            fetch52WeekHighFull()
         ]);
     } finally {
         isFetching = false;
@@ -319,24 +292,18 @@ async function updateAllData() {
 updateTimestamp();
 setInterval(updateTimestamp, 1000);
 updateAllData();
-setInterval(updateAllData, 1000);
+setInterval(updateAllData, 2000);
 
-// Company news search
+// ─── Search ───
 const searchInput = document.getElementById('company-search');
-const searchBtn = document.getElementById('search-btn');
 
-function searchCompanyNews() {
-    const companyName = searchInput.value.trim();
-    if (companyName) {
-        const searchQuery = encodeURIComponent(`recent news ${companyName}`);
-        window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-        searchInput.value = '';
-    }
-}
-
-searchBtn.addEventListener('click', searchCompanyNews);
 searchInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        searchCompanyNews();
+        const name = searchInput.value.trim();
+        if (name) {
+            const q = encodeURIComponent(`recent news ${name}`);
+            window.open(`https://www.google.com/search?q=${q}`, '_blank');
+            searchInput.value = '';
+        }
     }
 });

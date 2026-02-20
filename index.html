@@ -7,170 +7,163 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- Market Stats Bar with Header and Search -->
-        <section class="stats-bar">
-            <div class="header-info">
-                <h1>NSE MARKET DASHBOARD</h1>
-                <div class="timestamp" id="timestamp"></div>
+    <div class="dashboard">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-row">
+                <div class="cell title-cell">NSE MARKET DASHBOARD</div>
+                <div class="cell stat-cell">
+                    <div class="label">TRADED</div>
+                    <div class="value" id="stat-total">-</div>
+                </div>
+                <div class="cell stat-cell green">
+                    <div class="label">ADVANCES</div>
+                    <div class="value" id="stat-advances">-</div>
+                </div>
+                <div class="cell stat-cell red">
+                    <div class="label">DECLINE</div>
+                    <div class="value" id="stat-declines">-</div>
+                </div>
+                <div class="cell stat-cell blue">
+                    <div class="label">UNCHANGED</div>
+                    <div class="value" id="stat-unchanged">-</div>
+                </div>
+                <div class="cell stat-cell propen-label">
+                    <div class="label">PROPEN</div>
+                </div>
+                <div class="cell stat-cell green">
+                    <div class="label">ADVANCES</div>
+                    <div class="value" id="stat-propen-adv">-</div>
+                </div>
+                <div class="cell stat-cell red">
+                    <div class="label">DECLINE</div>
+                    <div class="value" id="stat-propen-dec">-</div>
+                </div>
+                <div class="cell search-cell">
+                    <div class="label">SEARCH</div>
+                    <input type="text" id="company-search" placeholder="" class="search-input">
+                </div>
             </div>
-            <div id="stats" class="stats-grid"></div>
-            <div class="search-container">
-                <input type="text" id="company-search" placeholder="Enter company name..." class="search-input">
-                <button id="search-btn" class="search-btn">Search News</button>
+            <div class="date-row">
+                <div class="cell date-cell">DATE AND TIME: <span id="timestamp"></span></div>
             </div>
-        </section>
+        </div>
 
         <!-- Main Content Grid -->
-        <div class="content-grid">
-            <!-- Column 1: Main Indices + Metals -->
-            <div class="column col-1">
-                <section class="data-section">
-                    <h2>Main Indices</h2>
-                    <div class="table-wrapper">
-                        <table id="main-indices-table">
-                            <thead>
-                                <tr>
-                                    <th>Index</th>
-                                    <th>Price</th>
-                                    <th>Change</th>
-                                </tr>
-                            </thead>
-                            <tbody id="main-indices-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="data-section commodities-section">
-                    <h2>Commodities - Indian Market</h2>
-                    <div class="table-wrapper">
-                        <table id="metals-table">
-                            <thead>
-                                <tr>
-                                    <th>Metal</th>
-                                    <th>Rate</th>
-                                    <th>Change</th>
-                                </tr>
-                            </thead>
-                            <tbody id="metals-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="data-section commodities-section">
-                    <h2>Commodities - International Market</h2>
-                    <div class="table-wrapper">
-                        <table id="intl-metals-table">
-                            <thead>
-                                <tr>
-                                    <th>Metal</th>
-                                    <th>Rate (USD)</th>
-                                    <th>Change</th>
-                                </tr>
-                            </thead>
-                            <tbody id="intl-metals-body"></tbody>
-                        </table>
-                    </div>
-                </section>
+        <div class="main-grid">
+            <!-- Column 1: INDEX + SECTOR -->
+            <div class="column">
+                <table>
+                    <thead>
+                        <tr class="main-header">
+                            <th>INDEX</th>
+                            <th>PRICE</th>
+                            <th>CHANGE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="main-indices-body"></tbody>
+                </table>
+                <table>
+                    <thead>
+                        <tr class="section-header">
+                            <th colspan="3">SECTOR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sector-body"></tbody>
+                </table>
             </div>
 
-            <!-- Column 2: Sector Indices -->
-            <div class="column col-2">
-                <section class="data-section full-height">
-                    <h2>Sector Indices</h2>
-                    <div class="table-wrapper">
-                        <table id="indices-table">
-                            <thead>
-                                <tr>
-                                    <th>Sector</th>
-                                    <th>Price</th>
-                                    <th>Change</th>
-                                </tr>
-                            </thead>
-                            <tbody id="indices-body"></tbody>
-                        </table>
-                    </div>
-                </section>
+            <!-- Column 2: THEMATIC + 52 WEEK HIGH -->
+            <div class="column">
+                <table>
+                    <thead>
+                        <tr class="main-header">
+                            <th>THEMATIC INDEXES</th>
+                            <th>PRICE</th>
+                            <th>CHANGE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="thematic-body"></tbody>
+                </table>
+                <table>
+                    <thead>
+                        <tr class="cyan-header">
+                            <th>52 WEEK HIGH</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="week52-body"></tbody>
+                </table>
             </div>
 
-            <!-- Column 3: FII/DII Activity + Volume Gainers -->
-            <div class="column col-3">
-                <section class="data-section fii-compact">
-                    <h2>FII/DII - NSE/BSE</h2>
-                    <div class="table-wrapper">
-                        <table id="fii-dii-react-table">
-                            <thead>
-                                <tr>
-                                    <th>Category</th>
-                                    <th>Date</th>
-                                    <th>Net Value</th>
-                                </tr>
-                            </thead>
-                            <tbody id="fii-dii-react-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="data-section fii-compact">
-                    <h2>FII/DII - NSE</h2>
-                    <div class="table-wrapper">
-                        <table id="fii-dii-nse-table">
-                            <thead>
-                                <tr>
-                                    <th>Category</th>
-                                    <th>Date</th>
-                                    <th>Net Value</th>
-                                </tr>
-                            </thead>
-                            <tbody id="fii-dii-nse-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="data-section volume-gainers-section">
-                    <h2>Top Volume Gainers</h2>
-                    <div class="table-wrapper">
-                        <table id="volume-gainers-table">
-                            <thead>
-                                <tr>
-                                    <th>Symbol</th>
-                                    <th>Price</th>
-                                    <th>% Chg</th>
-                                    <th>Vol Inc %</th>
-                                </tr>
-                            </thead>
-                            <tbody id="volume-gainers-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section class="data-section quick-links">
-                    <h2>Quick Links</h2>
-                    <div class="links-grid">
-                        <a href="https://www.nseindia.com/market-data/top-gainers-losers" target="_blank" class="link-card">
-                            <span class="link-text">Top Gainers/Losers</span>
-                        </a>
-                        <a href="https://www.nseindia.com/market-data/volume-gainers-spurts" target="_blank" class="link-card">
-                            <span class="link-text">Volume Spurts</span>
-                        </a>
-                        <a href="https://www.moneycontrol.com/markets/earnings/latest-results/?tab=LR&subType=yoy" target="_blank" class="link-card">
-                            <span class="link-text">Latest Earnings</span>
-                        </a>
-                        <a href="https://www.screener.in/" target="_blank" class="link-card">
-                            <span class="link-text">Stock Screener</span>
-                        </a>
-                        <a href="https://chartink.com/" target="_blank" class="link-card">
-                            <span class="link-text">Chart Patterns</span>
-                        </a>
-                        <a href="https://tradingeconomics.com/commodities" target="_blank" class="link-card">
-                            <span class="link-text">Global Commodities</span>
-                        </a>
-                        <a href="https://www.tradingview.com/" target="_blank" class="link-card">
-                            <span class="link-text">TradingView</span>
-                        </a>
-                    </div>
-                </section>
+            <!-- Column 3: COMMODITIES + FII/DII + VOLUME GAINERS -->
+            <div class="column">
+                <table>
+                    <thead>
+                        <tr class="main-header">
+                            <th>INTERNATIONAL COMMODITIES</th>
+                            <th>PRICE</th>
+                            <th>CHANGE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="intl-metals-body"></tbody>
+                </table>
+                <table>
+                    <thead>
+                        <tr class="cyan-header">
+                            <th colspan="3">INDIAN COMMODITIES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="indian-metals-body"></tbody>
+                </table>
+                <table>
+                    <thead>
+                        <tr class="cyan-header">
+                            <th colspan="3">FII/DII - NSE/BSE</th>
+                        </tr>
+                        <tr class="sub-header">
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Net Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fii-dii-bse-body"></tbody>
+                </table>
+                <table>
+                    <thead>
+                        <tr class="cyan-header">
+                            <th colspan="3">FII/DII - NSE</th>
+                        </tr>
+                        <tr class="sub-header">
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Net Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fii-dii-nse-body"></tbody>
+                </table>
+                <table>
+                    <thead>
+                        <tr class="cyan-header">
+                            <th>TOP VOLUME GAINERS</th>
+                            <th>%GE</th>
+                            <th>VOLUME CHANGE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="volume-gainers-body"></tbody>
+                </table>
             </div>
+        </div>
+
+        <!-- Bottom Quick Links Bar -->
+        <div class="shortcuts-bar">
+            <a href="https://www.nseindia.com/market-data/top-gainers-losers" target="_blank" class="shortcut-cell">Top Gainers/Losers</a>
+            <a href="https://www.moneycontrol.com/markets/earnings/latest-results/?tab=LR&subType=yoy" target="_blank" class="shortcut-cell">Latest Earnings</a>
+            <a href="https://www.screener.in/" target="_blank" class="shortcut-cell">Stock Screener</a>
+            <a href="https://chartink.com/" target="_blank" class="shortcut-cell">Chart Patterns</a>
+            <a href="https://www.tradingview.com/" target="_blank" class="shortcut-cell">TradingView</a>
+            <a href="https://www.nseindia.com/market-data/live-market-indices" target="_blank" class="shortcut-cell">NSE Live Indices</a>
         </div>
     </div>
 
